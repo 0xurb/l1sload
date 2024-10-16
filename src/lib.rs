@@ -1,3 +1,1 @@
 mod precompile;
-
-fn main() {}
