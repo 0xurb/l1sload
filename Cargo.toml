@@ -7,9 +7,15 @@ rust-version = "1.81"
 authors = ["0xurb"]
 
 [dependencies]
-revm = { git = "https://github.com/bluealloy/revm" }
+revm = { git = "https://github.com/bluealloy/revm", branch = "release/v45", features = [
+    "optimism",
+] }
 smallvec = "1.13.2"
 tokio = { version = "1.40", features = ["rt", "macros"] }
+
+[dev-dependencies]
+alloy = { version = "0.4.2", features = ["providers", "sol-types"] }
+eyre = "0.6.12"
 
 [[test]]
 name = "call"

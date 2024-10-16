@@ -1,7 +1,7 @@
 use revm::interpreter::gas::COLD_SLOAD_COST;
 
 /// Precompile address (tentative).
-pub(crate) const L1_SLOAD_ADDRESS: u64 = 0x101;
+pub const L1_SLOAD_ADDRESS: u64 = 0x101;
 /// Base gas fee for l1sload operation (tentative).
 pub(crate) const L1_SLOAD_BASE: u64 = 2_000;
 /// `eth_getStorageAt` credits per call in value of gas (tentative).
