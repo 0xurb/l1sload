@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use alloy::{
     primitives::{aliases::U112, U32},
+    providers::Provider,
     sol_types::SolValue,
     transports::http::{Client, Http},
 };
@@ -27,6 +28,53 @@ struct UniV2Reserves {
     block_timestamp_last: U32,
 }
 
+#[derive(Debug)]
+struct UniV2ReservesConversionErr(String);
+
+impl core::fmt::Display for UniV2ReservesConversionErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl core::error::Error for UniV2ReservesConversionErr {}
+
+impl TryFrom<U256> for UniV2Reserves {
+    type Error = UniV2ReservesConversionErr;
+    #[inline]
+    fn try_from(value: U256) -> Result<Self, Self::Error> {
+        let bytes = Bytes::from(value.to_be_bytes_vec());
+        let fixed: [u8; 32] = bytes.to_vec().try_into().map_err(|v: Vec<u8>| {
+            UniV2ReservesConversionErr(format!(
+                "Expected a Vec of length 32 but it was {}",
+                v.len()
+            ))
+        })?;
+
+        let reserve0 = &fixed[18..32];
+        let reserve1 = &fixed[4..18];
+        let block_timestamp_last = &fixed[0..4];
+
+        Ok(Self {
+            reserve0: U112::from_be_bytes(
+                <[u8; 14]>::try_from(reserve0).map_err(|_| {
+                    UniV2ReservesConversionErr("ERR: reserve0 from slice".to_owned())
+                })?,
+            ),
+            reserve1: U112::from_be_bytes(
+                <[u8; 14]>::try_from(reserve1).map_err(|_| {
+                    UniV2ReservesConversionErr("ERR: reserve1 from slice".to_owned())
+                })?,
+            ),
+            block_timestamp_last: U32::from_be_bytes(
+                <[u8; 4]>::try_from(block_timestamp_last).map_err(|_| {
+                    UniV2ReservesConversionErr("ERR: block_timestamp_last from slice".to_owned())
+                })?,
+            ),
+        })
+    }
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn should_call() -> eyre::Result<()> {
     // === ETH target slot === //
@@ -38,13 +86,18 @@ async fn should_call() -> eyre::Result<()> {
     let precompile_input: Bytes =
         [pool_address.as_slice(), slot.to_be_bytes::<32>().as_ref()].concat().into();
 
-    let expected_reserves = UniV2Reserves {
-        reserve0: U112::from(25417578056206466070741_u128),
-        reserve1: U112::from(66119976721112_u64),
-        block_timestamp_last: U32::from(1729037363),
-    };
+    debug_assert_eq!(precompile_input.len(), 52, "expects an address + slot");
 
-    debug_assert_eq!(precompile_input.len(), 52);
+    // === Expected L1 address target slot value decoded === //
+    // generate abi for the calldata from the human readable interface
+    alloy::sol! {
+        function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    }
+    let expected_reserves = l1_client()
+        .get_storage_at(pool_address, slot)
+        .block_id(20974450.into())
+        .await
+        .map(TryInto::try_into)??;
 
     // === EVM build === //
     let mut cache_db = CacheDB::new(EmptyDB::default());
@@ -104,17 +157,8 @@ async fn should_call() -> eyre::Result<()> {
 
     // decode bytes to reserves + ts via alloy's abi decode
     let data = Vec::<U256>::abi_decode(value.as_ref(), true)?;
-    let bytes = Bytes::from(data[0].to_be_bytes_vec());
+    let got: UniV2Reserves = data[0].try_into()?;
 
-    let reserve0 = &bytes[18..32];
-    let reserve1 = &bytes[4..18];
-    let timestamp = &bytes[0..4];
-
-    let got = UniV2Reserves {
-        reserve0: U112::from_be_bytes(<[u8; 14]>::try_from(reserve0)?),
-        reserve1: U112::from_be_bytes(<[u8; 14]>::try_from(reserve1)?),
-        block_timestamp_last: U32::from_be_bytes(<[u8; 4]>::try_from(timestamp)?),
-    };
     assert_eq!(got, expected_reserves);
     dbg!(got);
 

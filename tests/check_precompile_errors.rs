@@ -36,9 +36,9 @@ async fn check_precompile_errors() {
     );
 
     assert_eq!(
-        init_and_call(&Bytes::new(), 21_000).err(),
+        init_and_call(&Bytes::from_static(&[0x00; 31]), 21_000).err(),
         Some(PrecompileErrors::Error(PrecompileError::Other("invalid input".to_owned()))),
-        "expects invalid input"
+        "expects invalid input - less than 20+32 bytes(address + at least a single slot)"
     );
 
     assert_eq!(
@@ -58,6 +58,6 @@ async fn check_precompile_errors() {
         )
         .err(),
         Some(PrecompileErrors::Error(PrecompileError::Other("invalid input".to_owned()))),
-        "expects invalid input"
+        "expects invalid input - max num slots is 5"
     );
 }
