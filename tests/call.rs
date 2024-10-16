@@ -2,11 +2,7 @@
 
 use std::sync::Arc;
 
-use alloy::{
-    network::Ethereum,
-    providers::{builder, RootProvider},
-    transports::http::{Client, Http},
-};
+use alloy::transports::http::{Client, Http};
 use l1sload::{L1SloadPrecompile, L1_SLOAD_ADDRESS};
 use revm::{
     db::{CacheDB, EmptyDB},
@@ -15,12 +11,8 @@ use revm::{
 };
 use tokio::runtime::Handle;
 
-fn l1_client() -> Arc<RootProvider<Http<Client>>> {
-    let rpc_url = "https://mainnet.infura.io/v3/c60b0bb42f8a4c6481ecd229eddaca27"
-        .parse()
-        .unwrap();
-    Arc::new(builder::<Ethereum>().on_http(rpc_url))
-}
+mod common;
+use common::l1_client;
 
 #[tokio::test]
 async fn should_call() -> eyre::Result<()> {
@@ -41,7 +33,10 @@ async fn should_call() -> eyre::Result<()> {
                 );
                 ctx_precompiles.extend(std::iter::once((
                     u64_to_address(L1_SLOAD_ADDRESS),
-                    L1SloadPrecompile::<_, Http<Client>>::new(Handle::current(), l1_client()),
+                    L1SloadPrecompile::<_, Http<Client>>::new_precompile(
+                        Handle::current(),
+                        l1_client(),
+                    ),
                 )));
                 ctx_precompiles
             });

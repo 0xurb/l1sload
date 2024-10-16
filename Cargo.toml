@@ -22,3 +22,7 @@ eyre = "0.6.12"
 [[test]]
 name = "call"
 path = "tests/call.rs"
+
+[[test]]
+name = "check_precompile_errors"
+path = "tests/check_precompile_errors.rs"

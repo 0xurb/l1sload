@@ -12,8 +12,7 @@ use revm::{
 };
 use tokio::runtime::Handle;
 
-mod constants;
-pub use constants::L1_SLOAD_ADDRESS;
+pub mod constants;
 use constants::{L1_SLOAD_BASE, L1_SLOAD_MAX_NUM_STORAGE_SLOTS, L1_SLOAD_PER_LOAD_BASE};
 
 type StorageSlots = smallvec::SmallVec<[U256; L1_SLOAD_MAX_NUM_STORAGE_SLOTS]>;
@@ -100,17 +99,24 @@ where
     P: Provider<T> + 'static,
     T: Transport + Clone,
 {
-    /// Creates a new stateful precompile for l1sload.
-    pub fn new<DB: Database>(rt_handle: Handle, l1_client: Arc<P>) -> ContextPrecompile<DB>
-    where
-        DB::Error: core::fmt::Debug,
-    {
-        let this = Self {
+    pub fn new(rt_handle: Handle, l1_client: Arc<P>) -> Self {
+        Self {
             rt_handle,
             slots: StorageSlots::from_buf([U256::ZERO; 5]),
             l1_client,
             _transport: PhantomData,
-        };
+        }
+    }
+
+    /// Creates a new stateful precompile for l1sload.
+    pub fn new_precompile<DB: Database>(
+        rt_handle: Handle,
+        l1_client: Arc<P>,
+    ) -> ContextPrecompile<DB>
+    where
+        DB::Error: core::fmt::Debug,
+    {
+        let this = Self::new(rt_handle, l1_client);
         ContextPrecompile::ContextStatefulMut(Box::new(this))
     }
 
