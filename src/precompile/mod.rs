@@ -55,9 +55,9 @@ where
         let num_storage_slots = input_len / 32;
 
         // check that input is correct
-        if num_storage_slots == 0
-            || num_storage_slots > L1_SLOAD_MAX_NUM_STORAGE_SLOTS
-            || input_len != 20 + 32 * num_storage_slots
+        if num_storage_slots == 0 ||
+            num_storage_slots > L1_SLOAD_MAX_NUM_STORAGE_SLOTS ||
+            input_len != 20 + 32 * num_storage_slots
         {
             return Err(format_other_precompile_err("invalid input"));
         }

@@ -35,9 +35,8 @@ async fn should_call() -> eyre::Result<()> {
     // ETH/USDT pair on Uniswap V2
     let pool_address = address!("0d4a11d5EEaaC28EC3F61d100daF4d40471f1852");
     // Input for L1_SLOAD precompile
-    let precompile_input: Bytes = [pool_address.as_slice(), slot.to_be_bytes::<32>().as_ref()]
-        .concat()
-        .into();
+    let precompile_input: Bytes =
+        [pool_address.as_slice(), slot.to_be_bytes::<32>().as_ref()].concat().into();
 
     let expected_reserves = UniV2Reserves {
         reserve0: U112::from(25417578056206466070741_u128),
@@ -99,10 +98,7 @@ async fn should_call() -> eyre::Result<()> {
 
     // unpack output call enum into raw bytes
     let value = match result {
-        ExecutionResult::Success {
-            output: Output::Call(value),
-            ..
-        } => value,
+        ExecutionResult::Success { output: Output::Call(value), .. } => value,
         _ => panic!("Execution failed: {result:?}"),
     };
 

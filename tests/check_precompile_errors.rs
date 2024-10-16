@@ -37,9 +37,7 @@ async fn check_precompile_errors() {
 
     assert_eq!(
         init_and_call(&Bytes::new(), 21_000).err(),
-        Some(PrecompileErrors::Error(PrecompileError::Other(
-            "invalid input".to_owned()
-        ))),
+        Some(PrecompileErrors::Error(PrecompileError::Other("invalid input".to_owned()))),
         "expects invalid input"
     );
 
@@ -59,9 +57,7 @@ async fn check_precompile_errors() {
             21_000
         )
         .err(),
-        Some(PrecompileErrors::Error(PrecompileError::Other(
-            "invalid input".to_owned()
-        ))),
+        Some(PrecompileErrors::Error(PrecompileError::Other("invalid input".to_owned()))),
         "expects invalid input"
     );
 }
