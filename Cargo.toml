@@ -1,8 +1,10 @@
 [package]
 name = "l1sload"
 version = "0.0.0"
+edition = "2021"
 description = "RIP-7728 implementation"
 rust-version = "1.81"
 authors = ["0xurb"]
 
 [dependencies]
+revm = { git = "https://github.com/bluealloy/revm" }
