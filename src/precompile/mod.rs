@@ -57,4 +57,15 @@ where
         };
         ContextPrecompile::ContextStatefulMut(Box::new(this))
     }
+
+    /// Calls a future in assist of [`Self::rt_handle`]
+    #[inline]
+    #[track_caller]
+    fn call_future_mut<F>(&mut self, f: F) -> F::Output
+    where
+        F: core::future::Future + Send,
+        F::Output: Send,
+    {
+        tokio::task::block_in_place(move || self.rt_handle.block_on(f))
+    }
 }

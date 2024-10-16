@@ -11,7 +11,7 @@ revm = { git = "https://github.com/bluealloy/revm", branch = "release/v45", feat
     "optimism",
 ] }
 smallvec = "1.13.2"
-tokio = { version = "1.40", features = ["rt", "macros"] }
+tokio = { version = "1.40", features = ["rt", "rt_multi_thread", "macros"] }
 
 [dev-dependencies]
 alloy = { version = "0.4.2", features = ["providers", "sol-types"] }
