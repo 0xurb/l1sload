@@ -1534,9 +1534,11 @@ version = "0.0.0"
 dependencies = [
  "alloy",
  "eyre",
+ "futures",
  "revm",
  "smallvec",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

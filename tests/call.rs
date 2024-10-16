@@ -26,6 +26,8 @@ fn l1_client() -> Arc<RootProvider<Http<Client>>> {
 async fn should_call() -> eyre::Result<()> {
     let cache_db = CacheDB::new(EmptyDB::default());
 
+    // TODO - make facade for register to simply call
+    // `.append_handler_register(L1SloadPrecompile::register)`
     let evm: Evm<_, _> = Evm::builder()
         .with_db(cache_db)
         // add additional precompiles
